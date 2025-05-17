@@ -174,11 +174,11 @@ def post_comments_in_video_with_link(device_id: str, url: str, comment: str, cha
             unic_comment = gpt.create_comment(comment)
             post_comment(d, unic_comment)
             send_message(chatid, f"{url} | {unic_comment}")
-        except Exception:
+            break
+        except Exception as e:
+            print(e)
             restart_tiktok(d)
             continue
-
-        break
 
 
 async def post_comments_in_recommendations(device_id, comment: str, comments_in_one_account: int, comment_period: int,
