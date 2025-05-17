@@ -28,7 +28,7 @@ def change_account(d, account_index: int):
         d.xpath('//android.widget.FrameLayout[@content-desc="Профиль"]').click()
         d.xpath('//android.widget.Button[@content-desc="Фото профиля"]').wait(timeout=60)
 
-    d.sleep(1)
+    d.sleep(3)
 
     element_result = wait_for_element(d, ['//android.widget.ImageView[@content-desc="Меню"]',
                                           '//android.widget.Button[@content-desc="Меню профиля"]'])
