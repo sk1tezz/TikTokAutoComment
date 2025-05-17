@@ -1,3 +1,5 @@
 g4f==0.5.2.2
 python-dotenv==1.1.0
 aiogram==3.20.0.post0
+uiautomator2==3.2.10
+psutil==7.0.0

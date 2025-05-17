@@ -1,4 +1,4 @@
-from ui2funcs.other import write, wait_for_element
+from ui2funcs.other import write, wait_for_element, restart_tiktok
 from telegram.utils import send
 from utils import gpt
 import adb
@@ -21,7 +21,14 @@ def get_len_tasks_in_commenting_link_tasks():
 
 
 def phone_setup(d):
-    pass
+    d.shell("settings put system screen_off_timeout 2147483647")
+    d.screen_on()
+    d.shell("wm dismiss-keyguard")
+
+    restart_tiktok(d)
+
+
+
 
 
 def change_account(d, account_index: int):
@@ -139,7 +146,8 @@ def post_comments_in_video_with_link(device_id: str, url: str, comment: str, cha
     if "com.zhiliaoapp.musically" not in d.app_list():
         return False
 
-    d.app_start("com.zhiliaoapp.musically")
+    restart_tiktok(d)
+
     d.xpath("//android.widget.Button[contains(@content-desc, 'Прочитать или оставить комментарии.')]").wait(timeout=60)
 
     account_index = 0
@@ -147,15 +155,7 @@ def post_comments_in_video_with_link(device_id: str, url: str, comment: str, cha
         try:
             change_result = change_account(d, account_index)
         except Exception:
-            d.press("home")
-            d.sleep(3)
-            d.press("home")
-            d.sleep(2)
-            d.app_stop("com.zhiliaoapp.musically")
-            d.sleep(2)
-            d.app_start("com.zhiliaoapp.musically")
-            d.xpath("//android.widget.Button[contains(@content-desc, 'Прочитать или оставить комментарии.')]").wait(
-                timeout=60)
+            restart_tiktok(d)
             continue
 
         if change_result is None:
@@ -174,15 +174,7 @@ def post_comments_in_video_with_link(device_id: str, url: str, comment: str, cha
             post_comment(d, unic_comment)
             send.send_message(chatid, f"[{url}]: Оставил комментарий - {unic_comment}")
         except Exception:
-            d.press("home")
-            d.sleep(3)
-            d.press("home")
-            d.sleep(2)
-            d.app_stop("com.zhiliaoapp.musically")
-            d.sleep(2)
-            d.app_start("com.zhiliaoapp.musically")
-            d.xpath("//android.widget.Button[contains(@content-desc, 'Прочитать или оставить комментарии.')]").wait(
-                timeout=60)
+            restart_tiktok(d)
             continue
 
         account_index += 1
@@ -195,7 +187,8 @@ async def post_comments_in_recommendations(device_id, comment: str, comments_in_
     if "com.zhiliaoapp.musically" not in d.app_list():
         return False
 
-    d.app_start("com.zhiliaoapp.musically")
+    restart_tiktok(d)
+
     d.xpath("//android.widget.Button[contains(@content-desc, 'Прочитать или оставить комментарии.')]").wait(timeout=60)
 
     account_index = 0
@@ -245,16 +238,7 @@ async def post_comments_in_recommendations(device_id, comment: str, comments_in_
                             d.press("back")
                     break
                 except Exception:
-                    d.press("home")
-                    await asyncio.sleep(3)
-                    d.press("home")
-                    await asyncio.sleep(2)
-                    d.app_stop("com.zhiliaoapp.musically")
-                    await asyncio.sleep(2)
-                    d.app_start("com.zhiliaoapp.musically")
-                    d.xpath(
-                        "//android.widget.Button[contains(@content-desc, 'Прочитать или оставить комментарии.')]").wait(
-                        timeout=60)
+                    restart_tiktok(d)
                     continue
 
 

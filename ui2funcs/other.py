@@ -38,3 +38,14 @@ def get_center_from_element(element):
     x_center = (x_left + x_right) // 2
     y_center = (y_top + y_bottom) // 2
     return x_center, y_center
+
+
+def restart_tiktok(d):
+    d.press("home")
+    d.sleep(3)
+    d.press("home")
+    d.sleep(2)
+    d.app_stop("com.zhiliaoapp.musically")
+    d.sleep(2)
+    d.app_start("com.zhiliaoapp.musically")
+    d.xpath("//android.widget.Button[contains(@content-desc, 'Прочитать или оставить комментарии.')]").wait(timeout=60)

@@ -4,10 +4,12 @@ import time
 
 
 def get_devices_list():
-    result = subprocess.run(['adb.exe', 'devices'], stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True
+    result = subprocess.run(['adb', 'devices'], stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True
                             ).stdout.strip().split('\n')
     devices = result[1:]
-    devices = [device.replace('\tdevice', '') for device in devices]
+
+    devices = [line.split('\t')[0] for line in devices if '\tdevice' in line]
+
     return devices
 
 
