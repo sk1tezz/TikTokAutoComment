@@ -138,8 +138,7 @@ def open_video_with_link(d, url: str):
 
     element_result = wait_for_element(d, [
         '//android.widget.Button[@text="Открыть TikTok"]',
-        '//android.widget.ImageView[@content-desc="Воспроизвести"]'
-        "//android.widget.Button[contains(@content-desc, 'Прочитать или оставить комментарии.')]"], timeout=120)
+        '//android.widget.ImageView[@content-desc="Воспроизвести"]'], timeout=120)
     if element_result == '//android.widget.Button[@text="Открыть TikTok"]':
         d.xpath('//android.widget.Button[@text="Открыть TikTok"]').click()
     elif element_result == '//android.widget.ImageView[@content-desc="Воспроизвести"]':
