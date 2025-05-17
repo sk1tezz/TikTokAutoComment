@@ -188,7 +188,7 @@ def post_comments_in_video_with_link(device_id: str, url: str, comment: str, cha
 
             unic_comment = gpt.create_comment(comment)
             post_comment(d, unic_comment)
-            send_message(chatid, f"[{url}]: Оставил комментарий - {unic_comment}")
+            send_message(chatid, f"{url} | {unic_comment}")
         except Exception:
             restart_tiktok(d)
             continue
@@ -243,7 +243,7 @@ async def post_comments_in_recommendations(device_id, comment: str, comments_in_
 
             url = get_link_from_video(d)
 
-            send_message(chatid, f"[{url}]: Оставил комментарий - {unic_comment}")
+            send_message(chatid, f"{url} | {unic_comment}")
 
         if comments_count >= int(comments_in_one_account):
             account_index += 1
