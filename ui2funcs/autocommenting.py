@@ -37,10 +37,11 @@ def change_account(d, account_index: int):
     else:
         raise Exception("Error")
 
-    d.xpath().click()
     d.xpath('//android.widget.TextView[@text="Настройки и конфиденциальность"]').wait(timeout=60)
+    d.sleep(1)
     d.xpath('//android.widget.TextView[@text="Настройки и конфиденциальность"]').click()
     d.xpath('//android.widget.TextView[@content-desc="Настройки и конфиденциальность"]').wait(timeout=60)
+    d.sleep(1)
     while not d.xpath('//android.widget.TextView[@text="Сменить аккаунт"]').exists:
         d.swipe(screen_width // 2, screen_height - 300,
                 screen_width // 2, 300)
