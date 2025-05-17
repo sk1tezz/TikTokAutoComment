@@ -1,5 +1,4 @@
 from ui2funcs.other import write, wait_for_element, restart_tiktok
-from telegram.utils import send
 from utils import gpt
 import adb
 
@@ -8,8 +7,24 @@ import uiautomator2 as u2
 import time
 from random import randint
 import asyncio
+import requests
+from dotenv import dotenv_values
+
+config = dotenv_values(".env")
+
 
 commenting_link_tasks = []
+
+
+def send_message(chat_id: int, text: str):
+    url = f'https://api.telegram.org/bot{config["BOT_TOKEN"]}/sendMessage'
+    payload = {
+        'chat_id': chat_id,
+        'text': text,
+        'parse_mode': 'HTML'
+    }
+
+    requests.post(url, data=payload)
 
 
 def add_task_in_commenting_link_tasks(task: dict):
@@ -109,24 +124,28 @@ def post_comment(d, comment: str):
     d.sleep(1)
 
 
+def get_link_from_video(d):
+    d.xpath("//android.widget.Button[contains(@content-desc, 'Поделиться видео.')]").click()
+    d.xpath('//android.widget.Button[@content-desc="Ссылка"]').wait(timeout=60)
+    d.sleep(1)
+    d.xpath('//android.widget.Button[@content-desc="Ссылка"]').click()
+    d.sleep(3)
+    return d.clipboard
+
+
 def open_video_with_link(d, url: str):
     d.open_url(url)
 
-    while True:
-        element_result = wait_for_element(d, [
-            '//android.widget.Button[@text="Открыть TikTok"]',
-            '//android.widget.ImageView[@content-desc="Воспроизвести"]'
-            "//android.widget.Button[contains(@content-desc, 'Прочитать или оставить комментарии.')]"], timeout=120)
-        if element_result == '//android.widget.Button[@text="Открыть TikTok"]':
-            d.xpath('//android.widget.Button[@text="Открыть TikTok"]').click()
-        elif element_result == '//android.widget.ImageView[@content-desc="Воспроизвести"]':
-            d.xpath('//android.widget.ImageView[@content-desc="Воспроизвести"]').click()
-        elif (element_result ==
-              "//android.widget.Button[contains(@content-desc, 'Прочитать или оставить комментарии.')]"):
-            break
-        else:
-            raise Exception("Error")
-        d.sleep(10)
+    element_result = wait_for_element(d, [
+        '//android.widget.Button[@text="Открыть TikTok"]',
+        '//android.widget.ImageView[@content-desc="Воспроизвести"]'
+        "//android.widget.Button[contains(@content-desc, 'Прочитать или оставить комментарии.')]"], timeout=120)
+    if element_result == '//android.widget.Button[@text="Открыть TikTok"]':
+        d.xpath('//android.widget.Button[@text="Открыть TikTok"]').click()
+    elif element_result == '//android.widget.ImageView[@content-desc="Воспроизвести"]':
+        d.xpath('//android.widget.ImageView[@content-desc="Воспроизвести"]').click()
+
+    d.xpath("//android.widget.Button[contains(@content-desc, 'Прочитать или оставить комментарии.')]").wait(timeout=60)
 
 
 def swipe_video(d):
@@ -171,7 +190,7 @@ def post_comments_in_video_with_link(device_id: str, url: str, comment: str, cha
 
             unic_comment = gpt.create_comment(comment)
             post_comment(d, unic_comment)
-            send.send_message(chatid, f"[{url}]: Оставил комментарий - {unic_comment}")
+            send_message(chatid, f"[{url}]: Оставил комментарий - {unic_comment}")
         except Exception:
             restart_tiktok(d)
             continue
@@ -226,7 +245,9 @@ async def post_comments_in_recommendations(device_id, comment: str, comments_in_
             comments_count += 1
             last_reset = current_time
 
-            send.send_message(chatid, f"Оставил комментарий - {unic_comment}")
+            url = get_link_from_video(d)
+
+            send_message(chatid, f"[{url}]: Оставил комментарий - {unic_comment}")
 
         if comments_count >= int(comments_in_one_account):
             account_index += 1

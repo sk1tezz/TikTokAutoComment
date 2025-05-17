@@ -1,1 +1,1 @@
-from . import keyboards, states, texts, send
+from . import keyboards, states, texts
