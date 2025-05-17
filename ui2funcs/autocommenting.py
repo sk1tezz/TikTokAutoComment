@@ -20,6 +20,10 @@ def get_len_tasks_in_commenting_link_tasks():
     return len(commenting_link_tasks)
 
 
+def phone_setup(d):
+    pass
+
+
 def change_account(d, account_index: int):
     screen_width = d.window_size()[0]
     screen_height = d.window_size()[1]
@@ -107,9 +111,12 @@ def open_video_with_link(d, url: str):
     while True:
         element_result = wait_for_element(d, [
             '//android.widget.Button[@text="Открыть TikTok"]',
+            '//android.widget.ImageView[@content-desc="Воспроизвести"]'
             "//android.widget.Button[contains(@content-desc, 'Прочитать или оставить комментарии.')]"], timeout=120)
         if element_result == '//android.widget.Button[@text="Открыть TikTok"]':
             d.xpath('//android.widget.Button[@text="Открыть TikTok"]').click()
+        elif element_result == '//android.widget.ImageView[@content-desc="Воспроизвести"]':
+            d.xpath('//android.widget.ImageView[@content-desc="Воспроизвести"]').click()
         elif (element_result ==
               "//android.widget.Button[contains(@content-desc, 'Прочитать или оставить комментарии.')]"):
             break
