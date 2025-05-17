@@ -15,7 +15,7 @@ dp = Dispatcher()
 
 
 async def main():
-    await asyncio.create_task(autocommenting.main())
+    asyncio.create_task(autocommenting.main())
     dp.include_routers(start.router)
     await dp.start_polling(bot)
 
