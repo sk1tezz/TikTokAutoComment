@@ -136,6 +136,8 @@ def get_link_from_video(d):
 def open_video_with_link(d, url: str):
     d.open_url(url)
 
+    d.sleep(1)
+
     element_result = wait_for_element(d, [
         '//android.widget.Button[@text="Открыть TikTok"]',
         '//android.widget.ImageView[@content-desc="Воспроизвести"]'], timeout=120)
@@ -165,23 +167,7 @@ def post_comments_in_video_with_link(device_id: str, url: str, comment: str, cha
 
     d.xpath("//android.widget.Button[contains(@content-desc, 'Прочитать или оставить комментарии.')]").wait(timeout=60)
 
-    account_index = 0
     while True:
-        try:
-            change_result = change_account(d, account_index)
-        except Exception:
-            restart_tiktok(d)
-            continue
-
-        if change_result is None:
-            break
-        elif not change_result:
-            for i in range(3):
-                d.sleep(1)
-                d.press("back")
-
-
-        d.sleep(1)
         try:
             open_video_with_link(d, url)
 
@@ -192,7 +178,7 @@ def post_comments_in_video_with_link(device_id: str, url: str, comment: str, cha
             restart_tiktok(d)
             continue
 
-        account_index += 1
+        break
 
 
 async def post_comments_in_recommendations(device_id, comment: str, comments_in_one_account: int, comment_period: int,
