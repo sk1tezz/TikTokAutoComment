@@ -167,8 +167,13 @@ def post_comments_in_video_with_link(device_id: str, url: str, comment: str, cha
         return False
 
     phone_setup(d)
-
-    d.xpath("//android.widget.Button[contains(@content-desc, 'Прочитать или оставить комментарии.')]").wait(timeout=60)
+    while True:
+        try:
+            d.xpath("//android.widget.Button[contains(@content-desc, 'Прочитать или оставить комментарии.')]").wait(timeout=60)
+            break
+        except Exception:
+            restart_tiktok(d)
+            continue
 
     while True:
         try:
