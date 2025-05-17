@@ -159,12 +159,10 @@ def swipe_video(d):
 def post_comments_in_video_with_link(device_id: str, url: str, comment: str, chatid: int):
     d = u2.connect(device_id)
 
-    phone_setup(d)
-
     if "com.zhiliaoapp.musically" not in d.app_list():
         return False
 
-    restart_tiktok(d)
+    phone_setup(d)
 
     d.xpath("//android.widget.Button[contains(@content-desc, 'Прочитать или оставить комментарии.')]").wait(timeout=60)
 
@@ -202,12 +200,10 @@ async def post_comments_in_recommendations(device_id, comment: str, comments_in_
                                      chatid: int):
     d = u2.connect(device_id)
 
-    phone_setup(d)
-
     if "com.zhiliaoapp.musically" not in d.app_list():
         return False
 
-    restart_tiktok(d)
+    phone_setup(d)
 
     d.xpath("//android.widget.Button[contains(@content-desc, 'Прочитать или оставить комментарии.')]").wait(timeout=60)
 
