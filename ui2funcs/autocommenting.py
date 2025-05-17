@@ -140,11 +140,14 @@ def open_video_with_link(d, url: str):
 
     element_result = wait_for_element(d, [
         '//android.widget.Button[@text="Открыть TikTok"]',
-        '//android.widget.ImageView[@content-desc="Воспроизвести"]'], timeout=120)
-    if element_result == '//android.widget.Button[@text="Открыть TikTok"]':
-        d.xpath('//android.widget.Button[@text="Открыть TikTok"]').click()
-    elif element_result == '//android.widget.ImageView[@content-desc="Воспроизвести"]':
-        d.xpath('//android.widget.ImageView[@content-desc="Воспроизвести"]').click()
+        '//android.widget.ImageView[@content-desc="Воспроизвести"]',
+        '//android.widget.Button[@resource-id="com.android.chrome:id/message_primary_button" and @text="Продолжить"]'
+    ], timeout=60)
+
+    d.sleep(1)
+
+    if element_result:
+        d.xpath(element_result).click()
 
     d.xpath("//android.widget.Button[contains(@content-desc, 'Прочитать или оставить комментарии.')]").wait(timeout=60)
 
@@ -169,14 +172,24 @@ def post_comments_in_video_with_link(device_id: str, url: str, comment: str, cha
 
     while True:
         try:
+            if not change_account(d, 1):
+                for i in range(3):
+                    d.sleep(1)
+                    d.press("back")
+            break
+        except Exception:
+            restart_tiktok(d)
+            continue
+
+    while True:
+        try:
             open_video_with_link(d, url)
 
             unic_comment = gpt.create_comment(comment)
             post_comment(d, unic_comment)
             send_message(chatid, f"{url} | {unic_comment}")
             break
-        except Exception as e:
-            print(e)
+        except Exception:
             restart_tiktok(d)
             continue
 
@@ -254,3 +267,4 @@ async def main():
         devices = adb.get_devices_list()
         for task in commenting_link_tasks:
             post_comments_in_video_with_link(devices[0], task["url"], task["comment"], task["chatid"])
+            commenting_link_tasks.pop(0)
