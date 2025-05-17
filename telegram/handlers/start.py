@@ -48,8 +48,6 @@ async def commenting_link_finish(message: Message, state: FSMContext):
         await message.answer(f"Успешно создал задачу:\n"
                              f"Ссылка на видео: {url}\n"
                              f"Текст комментария: {comment}\n", reply_markup=kb.back("start"))
-
-        await state.clear()
     except ValueError:
         await message.answer("Вы не указали один из аргументов. Введите новый текст")
 
