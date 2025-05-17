@@ -28,9 +28,6 @@ def phone_setup(d):
     restart_tiktok(d)
 
 
-
-
-
 def change_account(d, account_index: int):
     screen_width = d.window_size()[0]
     screen_height = d.window_size()[1]
@@ -143,6 +140,8 @@ def swipe_video(d):
 def post_comments_in_video_with_link(device_id: str, url: str, comment: str, chatid: int):
     d = u2.connect(device_id)
 
+    phone_setup(d)
+
     if "com.zhiliaoapp.musically" not in d.app_list():
         return False
 
@@ -183,6 +182,8 @@ def post_comments_in_video_with_link(device_id: str, url: str, comment: str, cha
 async def post_comments_in_recommendations(device_id, comment: str, comments_in_one_account: int, comment_period: int,
                                      chatid: int):
     d = u2.connect(device_id)
+
+    phone_setup(d)
 
     if "com.zhiliaoapp.musically" not in d.app_list():
         return False
