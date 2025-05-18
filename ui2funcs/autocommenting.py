@@ -130,6 +130,8 @@ def post_comment(d, comment: str):
     else:
         raise Exception("Error")
 
+    return True
+
 
 def get_link_from_video(d):
     d.xpath("//android.widget.Button[contains(@content-desc, 'Поделиться видео.')]").click()
