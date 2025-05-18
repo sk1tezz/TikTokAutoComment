@@ -67,7 +67,6 @@ def change_account(d, account_index: int):
     while not d.xpath('//android.widget.TextView[@text="Сменить аккаунт"]').exists:
         d.swipe(screen_width // 2, screen_height - 300,
                 screen_width // 2, 300)
-        d.sleep(2)
 
     d.xpath('//android.widget.TextView[@text="Сменить аккаунт"]').click()
 
@@ -103,13 +102,10 @@ def change_account(d, account_index: int):
         d.sleep(1)
         accounts[account_index].click()
 
-    d.xpath("//android.widget.Button[contains(@content-desc, 'Прочитать или оставить комментарии.')]").wait(timeout=120)
-    d.sleep(20)
-
     return True
 
 
-def post_comment(d, comment: str):
+def post_comment(d, text: str):
     d.xpath("//android.widget.Button[contains(@content-desc, 'Прочитать или оставить комментарии.')]").wait(timeout=60)
     d.sleep(1)
     d.xpath("//android.widget.Button[contains(@content-desc, 'Прочитать или оставить комментарии.')]").click()
@@ -121,7 +117,7 @@ def post_comment(d, comment: str):
     elif element_result == '//android.widget.EditText[@text="Добавить комментарий..."]':
         d.xpath('//android.widget.EditText[@text="Добавить комментарий..."]').wait(timeout=60)
         d.sleep(1)
-        write(d, d.xpath(f'//android.widget.EditText[@text="Добавить комментарий..."]'), comment)
+        write(d, d.xpath(f'//android.widget.EditText[@text="Добавить комментарий..."]'), text)
         d.sleep(1)
         d.xpath('//android.widget.Button[@content-desc="Прокомментировать"]').click()
         d.sleep(3)
@@ -150,13 +146,16 @@ def open_video_with_link(d, url: str):
         element_result = wait_for_element(d, [
             '//android.widget.Button[@text="Открыть TikTok"]',
             '//android.widget.ImageView[@content-desc="Воспроизвести"]',
-            '//android.widget.Button[@resource-id="com.android.chrome:id/message_primary_button" and @text="Продолжить"]'
+            '//android.widget.Button[@resource-id="com.android.chrome:id/message_primary_button" and '
+            '@text="Продолжить"]'
         ], timeout=30)
 
         d.sleep(1)
 
         if element_result:
             d.xpath(element_result).click()
+            if element_result == '//android.widget.ImageView[@content-desc="Воспроизвести"]':
+                break
         else:
             break
 
@@ -206,7 +205,10 @@ def post_comments_in_video_with_link(device_id: str, url: str, comment: str, cha
                     d.press("back")
                 logger.warning("Не удалось сменить аккаунт. Продолжаю работу")
             else:
-                logger.info("Успешно сменил аккаунт")
+                d.xpath("//android.widget.Button[contains(@content-desc, 'Прочитать или оставить комментарии.')]").wait(
+                    timeout=120)
+                logger.info("Успешно сменил аккаунт. Жду 20 сек для применения аккаунта")
+                d.sleep(20)
             break
 
         except Exception as e:
@@ -242,7 +244,7 @@ def post_comments_in_video_with_link(device_id: str, url: str, comment: str, cha
 
 
 async def post_comments_in_recommendations(device_id, comment: str, comments_in_one_account: int, comment_period: int,
-                                     chatid: int):
+                                           chatid: int):
     logger = logging.getLogger(device_id)
 
     d = u2.connect(device_id)
@@ -328,7 +330,10 @@ async def post_comments_in_recommendations(device_id, comment: str, comments_in_
                             d.press("back")
                         logger.warning("Не удалось сменить аккаунт. Продолжаю работу")
                     else:
-                        logger.info("Успешно сменил аккаунт")
+                        d.xpath("//android.widget.Button[contains(@content-desc, 'Прочитать или оставить "
+                                "комментарии.')]").wait(timeout=120)
+                        logger.info("Успешно сменил аккаунт. Жду 20 сек для применения аккаунта")
+                        await asyncio.sleep(20)
                     break
                 except Exception as e:
                     logger.error(f"Ошибка при смене аккаунта: {e}. Перезапускаю тик ток")
