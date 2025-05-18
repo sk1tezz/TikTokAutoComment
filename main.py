@@ -9,7 +9,8 @@ from aiogram import Bot, Dispatcher
 from aiogram.types import User
 import psutil
 
-from telegram.handlers import start
+from telegram.handlers import start, settings, main as tgmain
+from telegram import jsondb
 from ui2funcs import autocommenting
 
 
@@ -59,22 +60,23 @@ def get_ntp_time():
 
 async def main():
     asyncio.create_task(autocommenting.main())
-    dp.include_routers(start.router)
+    dp.include_routers(start.router, tgmain.router, settings.router)
 
     me: User = await bot.get_me()
-    logging.getLogger(f"@{me.username}").info("Телеграм бот уcпешно запущен!")
+    logging.getLogger(f"@{me.username}").info("Телеграм бот уcпешно запущен!\n")
 
     await dp.start_polling(bot)
 
 
 if __name__ == "__main__":
-    expiration_date = datetime(2025, 5, 19, tzinfo=timezone.utc)
+    expiration_date = datetime(2025, 5, 20, tzinfo=timezone.utc)
     current_time = get_ntp_time()
 
     if current_time >= expiration_date:
         print("[!] Срок действия скрипта истёк. Запуск невозможен.")
         sys.exit(1)
     else:
+        jsondb.init()
         logging.getLogger('aiogram').setLevel(logging.CRITICAL + 1)
         kill_appium()
         asyncio.run(main())

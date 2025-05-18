@@ -1,4 +1,5 @@
 from ui2funcs.other import write, wait_for_element, restart_tiktok
+from telegram import jsondb
 from utils import gpt
 import adb
 
@@ -221,8 +222,11 @@ def post_comments_in_video_with_link(device_id: str, url: str, comment: str, cha
             logger.info(f'Открываю видео по ссылке: "{url}"')
             open_video_with_link(d, url)
 
-            unic_comment = gpt.create_comment(comment)
-            logger.info(f'Уникализировал комментарий: "{unic_comment}"')
+            if jsondb.get_use_unic_on_links():
+                unic_comment = gpt.create_comment(comment)
+                logger.info(f'Уникализировал комментарий: "{unic_comment}"')
+            else:
+                unic_comment = comment
 
             if post_comment(d, unic_comment):
                 logger.info(f'Запостил коментарий комментарий: "{unic_comment}"')
@@ -239,7 +243,7 @@ def post_comments_in_video_with_link(device_id: str, url: str, comment: str, cha
             restart_tiktok(d)
             continue
 
-    logger.critical("Успешно завершил работу")
+    logger.critical("Успешно завершил работу\n")
     return True
 
 

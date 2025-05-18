@@ -1,9 +1,8 @@
 from aiogram import Router, F
 from aiogram.types import Message, CallbackQuery, ReplyKeyboardRemove
 from aiogram.fsm.context import FSMContext
-from aiogram.filters.command import CommandStart
 
-from telegram.utils import keyboards as kb
+from telegram.utils import keyboards as kb, texts as txt
 from telegram.utils.states import Commenting_Link, Commenting_Recommendations
 
 from ui2funcs.autocommenting import post_comments_in_recommendations, add_task_in_commenting_link_tasks, get_len_tasks_in_commenting_link_tasks
@@ -16,7 +15,7 @@ router = Router()
 running_tasks = {}
 
 
-@router.message(CommandStart())
+@router.message(F.text == txt.kb_main)
 async def start(message: Message):
     devices = adb.get_devices_list()
     if len(devices) > 0:
@@ -35,7 +34,7 @@ async def commenting_link(callback: CallbackQuery, state: FSMContext):
 
 
 @router.message(Commenting_Link.commenting_link)
-async def commenting_link_finish(message: Message, state: FSMContext):
+async def commenting_link_finish(message: Message):
     try:
         url, comment = message.text.split(" | ")
 
