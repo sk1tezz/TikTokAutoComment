@@ -144,17 +144,19 @@ def open_video_with_link(d, url: str):
     d.open_url(url)
 
     d.sleep(1)
+    while True:
+        element_result = wait_for_element(d, [
+            '//android.widget.Button[@text="Открыть TikTok"]',
+            '//android.widget.ImageView[@content-desc="Воспроизвести"]',
+            '//android.widget.Button[@resource-id="com.android.chrome:id/message_primary_button" and @text="Продолжить"]'
+        ], timeout=30)
 
-    element_result = wait_for_element(d, [
-        '//android.widget.Button[@text="Открыть TikTok"]',
-        '//android.widget.ImageView[@content-desc="Воспроизвести"]',
-        '//android.widget.Button[@resource-id="com.android.chrome:id/message_primary_button" and @text="Продолжить"]'
-    ], timeout=60)
+        d.sleep(1)
 
-    d.sleep(1)
-
-    if element_result:
-        d.xpath(element_result).click()
+        if element_result:
+            d.xpath(element_result).click()
+        else:
+            break
 
     d.xpath("//android.widget.Button[contains(@content-desc, 'Прочитать или оставить комментарии.')]").wait(timeout=60)
 
@@ -340,5 +342,6 @@ async def main():
 
         devices = adb.get_devices_list()
         for task in commenting_link_tasks:
+            logging.warning(f"Успешно взял задачу: {task}")
             post_comments_in_video_with_link(devices[0], task["url"], task["comment"], task["chatid"])
             commenting_link_tasks.pop(0)
