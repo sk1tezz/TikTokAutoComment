@@ -5,7 +5,8 @@ from aiogram.fsm.context import FSMContext
 from telegram.utils import keyboards as kb, texts as txt
 from telegram.utils.states import Commenting_Link, Commenting_Recommendations
 
-from ui2funcs.autocommenting import post_comments_in_recommendations, add_task_in_commenting_link_tasks, get_len_tasks_in_commenting_link_tasks
+from ui2funcs.autocommenting import (post_comments_in_recommendations, add_task_in_commenting_link_tasks,
+                                     get_len_tasks_in_commenting_link_tasks)
 import adb
 
 import asyncio

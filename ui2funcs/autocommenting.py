@@ -4,7 +4,7 @@ from utils import gpt
 import adb
 
 import time
-from random import randint
+from random import randint, choice
 import asyncio
 import logging
 
@@ -43,67 +43,84 @@ def phone_setup(d):
     restart_tiktok(d)
 
 
-def change_account(d, account_index: int):
+def check_used_account(d, account_element):
+    bounds = account_element.info["bounds"]
+    left, top = bounds["left"], bounds["top"]
+    right, bottom = bounds["right"], bounds["bottom"]
+    all_elements = d.xpath("//*").all()
+    inner_elements = []
+    for el in all_elements:
+        b = el.info["bounds"]
+        if (
+                b["left"] >= left and b["right"] <= right and
+                b["top"] >= top and b["bottom"] <= bottom
+        ):
+            inner_elements.append(el)
+    for el in inner_elements:
+        if el.attrib.get('content-desc', None) == "Галочка":
+            return True
+
+    return False
+
+
+def go_to_change_account(d):
     screen_width = d.window_size()[0]
     screen_height = d.window_size()[1]
 
-    if not d.xpath('//android.widget.Button[@content-desc="Фото профиля"]').exists:
-        d.xpath('//android.widget.FrameLayout[@content-desc="Профиль"]').click()
-        d.xpath('//android.widget.Button[@content-desc="Фото профиля"]').wait(timeout=60)
+    while True:
+        element_result = wait_for_element(d, ['//android.widget.Button[@content-desc="Фото профиля"]',
+                                              "//android.widget.Button[contains(@content-desc, 'Прочитать или оставить комментарии.')]",
+                                              '//android.widget.TextView[@text="Сменить аккаунт"]',
+                                              "//androidx.recyclerview.widget.RecyclerView/android.widget.Button"])
 
-    d.sleep(3)
+        if element_result == '//android.widget.Button[@content-desc="Фото профиля"]':
+            element_result = wait_for_element(d, ['//android.widget.ImageView[@content-desc="Меню"]',
+                                                  '//android.widget.Button[@content-desc="Меню профиля"]'])
+            if element_result:
+                d.xpath(element_result).click()
+            else:
+                raise Exception("Error")
 
-    element_result = wait_for_element(d, ['//android.widget.ImageView[@content-desc="Меню"]',
-                                          '//android.widget.Button[@content-desc="Меню профиля"]'])
-    if element_result:
-        d.xpath(element_result).click()
-    else:
-        raise Exception("Error")
+            d.xpath('//android.widget.TextView[@text="Настройки и конфиденциальность"]').wait(timeout=60)
+            d.sleep(1)
+            d.xpath('//android.widget.TextView[@text="Настройки и конфиденциальность"]').click()
+            d.xpath('//android.widget.TextView[@content-desc="Настройки и конфиденциальность"]').wait(timeout=60)
+            d.sleep(1)
+            while not d.xpath('//android.widget.TextView[@text="Сменить аккаунт"]').exists:
+                d.swipe(screen_width // 2, screen_height - 300,
+                        screen_width // 2, 300)
+        elif element_result == "//android.widget.Button[contains(@content-desc, 'Прочитать или оставить комментарии.')]":
+            d.xpath('//android.widget.FrameLayout[@content-desc="Профиль"]').click()
+            d.xpath('//android.widget.Button[@content-desc="Фото профиля"]').wait(timeout=60)
+        elif element_result == '//android.widget.TextView[@text="Сменить аккаунт"]':
+            d.xpath('//android.widget.TextView[@text="Сменить аккаунт"]').click()
+        elif element_result == "//androidx.recyclerview.widget.RecyclerView/android.widget.Button":
+            break
+        else:
+            raise Exception("Error")
+        d.sleep(3)
 
-    d.xpath('//android.widget.TextView[@text="Настройки и конфиденциальность"]').wait(timeout=60)
+
+def get_accounts_name(d):
+    go_to_change_account(d)
+
     d.sleep(1)
-    d.xpath('//android.widget.TextView[@text="Настройки и конфиденциальность"]').click()
-    d.xpath('//android.widget.TextView[@content-desc="Настройки и конфиденциальность"]').wait(timeout=60)
-    d.sleep(1)
-    while not d.xpath('//android.widget.TextView[@text="Сменить аккаунт"]').exists:
-        d.swipe(screen_width // 2, screen_height - 300,
-                screen_width // 2, 300)
-
-    d.xpath('//android.widget.TextView[@text="Сменить аккаунт"]').click()
-
-    d.xpath("//androidx.recyclerview.widget.RecyclerView/android.widget.Button").wait(timeout=30)
-
     accounts = d.xpath("//androidx.recyclerview.widget.RecyclerView/android.widget.Button").all()
 
-    if (
-            (len(accounts) - 1 < account_index) or
-            (len(accounts) - 1 <= 1) or
-            (accounts[account_index].attrib.get("content-desc", None) == "Добавить аккаунт")
-    ):
-        return None
-    else:
-        account = accounts[account_index]
+    accounts_result = []
+    for account in accounts:
+        account_name = account.attrib.get("content-desc", None)
+        if account_name != "Добавить аккаунт":
+            if not check_used_account(d, account):
+                accounts_result.append(account_name)
 
-        bounds = account.info["bounds"]
-        left, top = bounds["left"], bounds["top"]
-        right, bottom = bounds["right"], bounds["bottom"]
-        all_elements = d.xpath("//*").all()
-        inner_elements = []
-        for el in all_elements:
-            b = el.info["bounds"]
-            if (
-                    b["left"] >= left and b["right"] <= right and
-                    b["top"] >= top and b["bottom"] <= bottom
-            ):
-                inner_elements.append(el)
-        for el in inner_elements:
-            if el.attrib.get('content-desc', None) == "Галочка":
-                return False
+    return accounts_result
 
-        d.sleep(1)
-        accounts[account_index].click()
 
-    return True
+def change_account(d, account_name):
+    go_to_change_account(d)
+    d.sleep(1)
+    d.xpath(f'//android.widget.Button[@content-desc="{account_name}"]').click()
 
 
 def post_comment(d, text: str):
@@ -200,12 +217,14 @@ def post_comments_in_video_with_link(device_id: str, url: str, comment: str, cha
     while True:
         try:
             logger.info("Меняю аккаунт")
-            if not change_account(d, 1):
+            accounts = get_accounts_name(d)
+            if len(accounts) <= 0:
                 for i in range(3):
                     d.sleep(1)
                     d.press("back")
                 logger.warning("Не удалось сменить аккаунт. Продолжаю работу")
             else:
+                change_account(d, choice(accounts))
                 d.xpath("//android.widget.Button[contains(@content-desc, 'Прочитать или оставить комментарии.')]").wait(
                     timeout=120)
                 logger.info("Успешно сменил аккаунт. Жду 20 сек для применения аккаунта")
@@ -274,7 +293,12 @@ async def post_comments_in_recommendations(device_id, comment: str, comments_in_
 
     logger.info("Запустил тик ток")
 
-    account_index = 0
+    accounts = get_accounts_name(d)
+    for i in range(3):
+        d.sleep(1)
+        d.press("back")
+    d.sleep(1)
+
     comments_count = 0
     last_reset = time.time()
 
@@ -323,21 +347,20 @@ async def post_comments_in_recommendations(device_id, comment: str, comments_in_
             logger.warning(f'Отправил отстук: "{output_text}"')
 
         if comments_count >= int(comments_in_one_account):
-            account_index += 1
+            accounts.pop(0)
             while True:
                 try:
-                    logger.info("Меняю аккаунт")
-                    if not change_account(d, account_index):
-                        account_index = 0
-                        for i in range(3):
-                            await asyncio.sleep(1)
-                            d.press("back")
-                        logger.warning("Не удалось сменить аккаунт. Продолжаю работу")
+                    if len(accounts) <= 0:
+                        accounts = get_accounts_name(d)
+                        continue
                     else:
-                        d.xpath("//android.widget.Button[contains(@content-desc, 'Прочитать или оставить "
-                                "комментарии.')]").wait(timeout=120)
+                        logger.info("Меняю аккаунт")
+                        change_account(d, accounts[0])
+                        d.xpath(
+                            "//android.widget.Button[contains(@content-desc, 'Прочитать или оставить комментарии.')]").wait(
+                            timeout=120)
                         logger.info("Успешно сменил аккаунт. Жду 20 сек для применения аккаунта")
-                        await asyncio.sleep(20)
+                        d.sleep(20)
                     break
                 except Exception as e:
                     logger.error(f"Ошибка при смене аккаунта: {e}. Перезапускаю тик ток")
