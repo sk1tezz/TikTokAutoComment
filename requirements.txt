@@ -3,3 +3,6 @@ python-dotenv==1.1.0
 aiogram==3.20.0.post0
 uiautomator2==3.2.10
 psutil==7.0.0
+asyncio==3.4.3
+ntplib==0.4.0
+requests==2.32.3

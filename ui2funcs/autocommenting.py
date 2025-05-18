@@ -2,17 +2,16 @@ from ui2funcs.other import write, wait_for_element, restart_tiktok
 from utils import gpt
 import adb
 
-import uiautomator2 as u2
-
 import time
 from random import randint
 import asyncio
+import logging
+
 import requests
 from dotenv import dotenv_values
+import uiautomator2 as u2
 
 config = dotenv_values(".env")
-
-
 commenting_link_tasks = []
 
 
@@ -114,14 +113,22 @@ def post_comment(d, comment: str):
     d.xpath("//android.widget.Button[contains(@content-desc, 'Прочитать или оставить комментарии.')]").wait(timeout=60)
     d.sleep(1)
     d.xpath("//android.widget.Button[contains(@content-desc, 'Прочитать или оставить комментарии.')]").click()
-    d.xpath('//android.widget.EditText[@text="Добавить комментарий..."]').wait(timeout=60)
-    d.sleep(1)
-    write(d, d.xpath(f'//android.widget.EditText[@text="Добавить комментарий..."]'), comment)
-    d.sleep(1)
-    d.xpath('//android.widget.Button[@content-desc="Прокомментировать"]').click()
-    d.sleep(3)
-    d.press("back")
-    d.sleep(1)
+
+    element_result = wait_for_element(d, ['//android.widget.TextView[@text="Этот автор отключил комментарии"]',
+                                          '//android.widget.EditText[@text="Добавить комментарий..."]'])
+    if element_result == '//android.widget.TextView[@text="Этот автор отключил комментарии"]':
+        return False
+    elif element_result == '//android.widget.EditText[@text="Добавить комментарий..."]':
+        d.xpath('//android.widget.EditText[@text="Добавить комментарий..."]').wait(timeout=60)
+        d.sleep(1)
+        write(d, d.xpath(f'//android.widget.EditText[@text="Добавить комментарий..."]'), comment)
+        d.sleep(1)
+        d.xpath('//android.widget.Button[@content-desc="Прокомментировать"]').click()
+        d.sleep(3)
+        d.press("back")
+        d.sleep(1)
+    else:
+        raise Exception("Error")
 
 
 def get_link_from_video(d):
@@ -161,54 +168,101 @@ def swipe_video(d):
 
 
 def post_comments_in_video_with_link(device_id: str, url: str, comment: str, chatid: int):
+    logger = logging.getLogger(device_id)
+
     d = u2.connect(device_id)
+
+    logger.info("Успешно подключился к устройству")
 
     if "com.zhiliaoapp.musically" not in d.app_list():
         return False
 
     phone_setup(d)
-    while True:
-        try:
-            d.xpath("//android.widget.Button[contains(@content-desc, 'Прочитать или оставить комментарии.')]").wait(timeout=60)
-            break
-        except Exception:
-            restart_tiktok(d)
-            continue
+
+    logger.info("Настроил устройство")
 
     while True:
         try:
+            (d.xpath("//android.widget.Button[contains(@content-desc, 'Прочитать или оставить комментарии.')]")
+             .wait(timeout=60))
+            break
+        except Exception as e:
+            logger.info(f"Не удалось запустить тик ток. Ошибка: {e}. Перезапускаю приложение")
+            restart_tiktok(d)
+            continue
+
+    logger.info("Запустил тик ток")
+
+    while True:
+        try:
+            logger.info("Меняю аккаунт")
             if not change_account(d, 1):
                 for i in range(3):
                     d.sleep(1)
                     d.press("back")
+                logger.warning("Не удалось сменить аккаунт. Продолжаю работу")
+            else:
+                logger.info("Успешно сменил аккаунт")
             break
-        except Exception:
+
+        except Exception as e:
+            logger.error(f"Ошибка при смене аккаунта: {e}. Перезапускаю тик ток")
             restart_tiktok(d)
             continue
 
     while True:
         try:
+            logger.info(f'Открываю видео по ссылке: "{url}"')
             open_video_with_link(d, url)
 
             unic_comment = gpt.create_comment(comment)
-            post_comment(d, unic_comment)
-            send_message(chatid, f"{url} | {unic_comment}")
+            logger.info(f'Уникализировал комментарий: "{unic_comment}"')
+
+            if post_comment(d, unic_comment):
+                logger.info(f'Запостил коментарий комментарий: "{unic_comment}"')
+                output_text = f"{url} | {unic_comment}"
+            else:
+                logger.warning(f"Автор отключил комментарии под видео")
+                output_text = f"[{url}]: Автор отключил комментарии под видео"
+
+            send_message(chatid, output_text)
+            logger.warning(f'Отправил отстук: "{output_text}"')
             break
-        except Exception:
+        except Exception as e:
+            logger.error(f"Ошибка при отправлении комментария: {e}. Перезапускаю тик ток")
             restart_tiktok(d)
             continue
+
+    logger.critical("Успешно завершил работу")
+    return True
 
 
 async def post_comments_in_recommendations(device_id, comment: str, comments_in_one_account: int, comment_period: int,
                                      chatid: int):
+    logger = logging.getLogger(device_id)
+
     d = u2.connect(device_id)
+
+    logger.info("Успешно подключился к устройству")
 
     if "com.zhiliaoapp.musically" not in d.app_list():
         return False
 
     phone_setup(d)
 
-    d.xpath("//android.widget.Button[contains(@content-desc, 'Прочитать или оставить комментарии.')]").wait(timeout=60)
+    logger.info("Настроил устройство")
+
+    while True:
+        try:
+            (d.xpath("//android.widget.Button[contains(@content-desc, 'Прочитать или оставить комментарии.')]")
+             .wait(timeout=60))
+            break
+        except Exception as e:
+            logger.info(f"Не удалось запустить тик ток. Ошибка: {e}. Перезапускаю приложение")
+            restart_tiktok(d)
+            continue
+
+    logger.info("Запустил тик ток")
 
     account_index = 0
     comments_count = 0
@@ -217,7 +271,9 @@ async def post_comments_in_recommendations(device_id, comment: str, comments_in_
     while True:
         await asyncio.sleep(1)
         swipe_video(d)
-        await asyncio.sleep(randint(1, 15))
+        watch_video = randint(1, 15)
+        logger.info(f"Просматриваю видео: {watch_video} сек")
+        await asyncio.sleep(watch_video)
 
         current_time = time.time()
         if int(current_time - last_reset) >= int(comment_period):
@@ -228,9 +284,15 @@ async def post_comments_in_recommendations(device_id, comment: str, comments_in_
                 continue
 
             unic_comment = gpt.create_comment(comment)
+            logger.info(f'Уникализировал комментарий: "{unic_comment}"')
             try:
-                post_comment(d, unic_comment)
-            except Exception:
+                if post_comment(d, unic_comment):
+                    logger.info(f'Запостил коментарий комментарий: "{unic_comment}"')
+                else:
+                    logger.info(f'Автор отключил комментарии на видео. Продолжаю работу')
+                    continue
+            except Exception as e:
+                logger.error(f"Ошибка при отправлении комментария: {e}. Перезапускаю тик ток")
                 d.press("home")
                 await asyncio.sleep(3)
                 d.press("home")
@@ -246,19 +308,26 @@ async def post_comments_in_recommendations(device_id, comment: str, comments_in_
 
             url = get_link_from_video(d)
 
-            send_message(chatid, f"{url} | {unic_comment}")
+            output_text = f"{url} | {unic_comment}"
+            send_message(chatid, output_text)
+            logger.warning(f'Отправил отстук: "{output_text}"')
 
         if comments_count >= int(comments_in_one_account):
             account_index += 1
             while True:
                 try:
+                    logger.info("Меняю аккаунт")
                     if not change_account(d, account_index):
                         account_index = 0
                         for i in range(3):
                             await asyncio.sleep(1)
                             d.press("back")
+                        logger.warning("Не удалось сменить аккаунт. Продолжаю работу")
+                    else:
+                        logger.info("Успешно сменил аккаунт")
                     break
-                except Exception:
+                except Exception as e:
+                    logger.error(f"Ошибка при смене аккаунта: {e}. Перезапускаю тик ток")
                     restart_tiktok(d)
                     continue
 
