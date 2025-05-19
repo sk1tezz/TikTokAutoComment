@@ -382,7 +382,6 @@ async def main():
 
         devices = adb.get_devices_list()
         for task in commenting_link_tasks:
-            print(commenting_link_tasks)
             logging.warning(f"Успешно взял задачу: {task}")
             post_comments_in_video_with_link(devices[0], task["url"], task["comment"], task["chatid"])
-            commenting_link_tasks.pop(0)
+            commenting_link_tasks.remove(task)
