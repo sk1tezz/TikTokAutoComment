@@ -254,8 +254,11 @@ def post_comments_in_video_with_link(device_id: str, url: str, comment: str, cha
                 logger.warning(f"Автор отключил комментарии под видео")
                 output_text = f"[{url}]: Автор отключил комментарии под видео"
 
-            send_message(chatid, output_text)
-            logger.warning(f'Отправил отстук: "{output_text}"')
+            try:
+                send_message(chatid, output_text)
+                logger.warning(f'Отправил отстук: "{output_text}"')
+            except Exception:
+                pass
             break
         except Exception as e:
             logger.error(f"Ошибка при отправлении комментария: {e}. Перезапускаю тик ток")
@@ -343,8 +346,11 @@ async def post_comments_in_recommendations(device_id, comment: str, comments_in_
             url = get_link_from_video(d)
 
             output_text = f"{url} | {unic_comment}"
-            send_message(chatid, output_text)
-            logger.warning(f'Отправил отстук: "{output_text}"')
+            try:
+                send_message(chatid, output_text)
+                logger.warning(f'Отправил отстук: "{output_text}"')
+            except Exception:
+                pass
 
         if comments_count >= int(comments_in_one_account):
             accounts.pop(0)
@@ -376,6 +382,7 @@ async def main():
 
         devices = adb.get_devices_list()
         for task in commenting_link_tasks:
+            print(commenting_link_tasks)
             logging.warning(f"Успешно взял задачу: {task}")
             post_comments_in_video_with_link(devices[0], task["url"], task["comment"], task["chatid"])
             commenting_link_tasks.pop(0)
