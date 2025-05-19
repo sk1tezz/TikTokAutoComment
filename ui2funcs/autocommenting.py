@@ -376,12 +376,11 @@ async def post_comments_in_recommendations(device_id, comment: str, comments_in_
 
 async def main():
     while True:
-        if len(commenting_link_tasks) <= 0:
-            await asyncio.sleep(1)
-            continue
-
-        devices = adb.get_devices_list()
-        for task in commenting_link_tasks:
+        if len(commenting_link_tasks) > 0:
+            devices = adb.get_devices_list()
+            task = commenting_link_tasks.pop(0)
             logging.warning(f"Успешно взял задачу: {task}")
             post_comments_in_video_with_link(devices[0], task["url"], task["comment"], task["chatid"])
-            commenting_link_tasks.remove(task)
+        else:
+            await asyncio.sleep(1)
+
