@@ -1,9 +1,6 @@
 import asyncio
 import logging
-from datetime import datetime, timezone
-import sys
 
-import ntplib
 from dotenv import dotenv_values
 from aiogram import Bot, Dispatcher
 from aiogram.types import User
@@ -47,17 +44,6 @@ def kill_appium():
             continue
 
 
-def get_ntp_time():
-    client = ntplib.NTPClient()
-    try:
-        response = client.request('pool.ntp.org', version=3)
-        current_time = datetime.utcfromtimestamp(response.tx_time).replace(tzinfo=timezone.utc)
-        return current_time
-    except Exception as e:
-        print(f"[Ошибка] Не удалось получить время с NTP: {e}")
-        sys.exit(1)
-
-
 async def main():
     asyncio.create_task(autocommenting.main())
     dp.include_routers(start.router, tgmain.router, settings.router)
@@ -69,14 +55,7 @@ async def main():
 
 
 if __name__ == "__main__":
-    expiration_date = datetime(2025, 5, 20, tzinfo=timezone.utc)
-    current_time = get_ntp_time()
-
-    if current_time >= expiration_date:
-        print("[!] Срок действия скрипта истёк. Запуск невозможен.")
-        sys.exit(1)
-    else:
-        jsondb.init()
-        logging.getLogger('aiogram').setLevel(logging.CRITICAL + 1)
-        kill_appium()
-        asyncio.run(main())
+    jsondb.init()
+    logging.getLogger('aiogram').setLevel(logging.CRITICAL + 1)
+    kill_appium()
+    asyncio.run(main())
