@@ -1,11 +1,11 @@
-# TikTokCommentBot
+# TikTokAutoComment
 
 ![Python](https://img.shields.io/badge/Python-3.9%2B-blue)
 ![Telegram](https://img.shields.io/badge/Telegram-Bot-blue?logo=telegram)
 ![TikTok](https://img.shields.io/badge/TikTok-Automation-black?logo=tiktok)
 
 ## 🚀 Overview
-**TikTokCommentBot** is a tool that allows you to **automatically post comments on TikTok videos** using a **real physical phone**, fully controlled through a **Telegram bot interface**.  
+**TikTokAutoComment** is a tool that allows you to **automatically post comments on TikTok videos** using a **real physical phone**, fully controlled through a **Telegram bot interface**.  
 
 Perfect for personal use or client projects where automation and simplicity are key.
 
