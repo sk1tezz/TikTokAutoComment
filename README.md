@@ -23,7 +23,7 @@ Perfect for personal use or client projects where automation and simplicity are 
 ## 🛠️ Tech Stack
 - **Python** for automation logic  
 - **Telegram Bot API** for management  
-- **ADB / PhoneBridge** for interaction with the physical device  
+- **ADB** for interaction with the physical device  
 - **TikTok App** running on the phone  
 
 ---
