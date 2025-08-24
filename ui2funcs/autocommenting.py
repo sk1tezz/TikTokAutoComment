@@ -70,8 +70,8 @@ def go_to_change_account(d):
     while True:
         element_result = wait_for_element(d, ['//android.widget.Button[@content-desc="Фото профиля"]',
                                               "//android.widget.Button[contains(@content-desc, 'Прочитать или оставить комментарии.')]",
-                                              '//android.widget.TextView[@text="Сменить аккаунт"]',
-                                              "//androidx.recyclerview.widget.RecyclerView/android.widget.Button"])
+                                              "//androidx.recyclerview.widget.RecyclerView/android.widget.Button",
+                                              '//android.widget.TextView[@text="Сменить аккаунт"]'])
 
         if element_result == '//android.widget.Button[@content-desc="Фото профиля"]':
             element_result = wait_for_element(d, ['//android.widget.ImageView[@content-desc="Меню"]',
